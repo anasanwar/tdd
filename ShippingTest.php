@@ -41,20 +41,32 @@ class ShippingTest extends TestCase{
     public function testSuccessfulShippingChangeOrderStatusToShippedAndSendEmail()
     {
         // Create a stub for the SomeClass class.
-        $ship = $this->createMock(ShippingService::class);
+        $ship = $this->createMock(Shipping::class);
 
         // Configure the stub.
         $ship->method('isOrderShipped')
             ->willReturn(true);
 
-        $order = Order::find(123456);
-        $order->setStatus("Shipped");
+        $order = new Order("123456");
         $this->assertTrue($ship->isOrderShipped($order));
-
-        $emailService = $this->createMock(EmailService::class);
-        $emailService->method("sendEmail")->willReturn(true);
-        $this->assertTrue($emailService->sendEmail($order->getClient()));
+        $this->assertTrue($order->setOrderShipped());
+        $this->assertTrue($order->getClient()->sendEmail());
         $this->assertEquals("Shipped",$order->getStatus());
+
+    }
+
+    public function testFailureShippingAndOrderStatusIsShipping()
+    {
+        // Create a stub for the SomeClass class.
+        $ship = $this->createMock(Shipping::class);
+
+        // Configure the stub.
+        $ship->method('isOrderShipped')
+            ->willReturn(false);
+
+        $order = Order::find("123456");
+        $this->assertFalse($ship->isOrderShipped($order));
+        $this->assertEquals("Shipping",$order->getStatus());
 
     }
 
